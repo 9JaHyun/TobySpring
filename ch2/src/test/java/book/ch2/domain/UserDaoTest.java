@@ -2,26 +2,35 @@ package book.ch2.domain;
 
 import book.ch2.dao.DaoFactory;
 import org.junit.jupiter.api.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.test.context.ContextConfiguration;
 
 import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-
+// getBean 형식으로 가지고 오지 않을 경우 이 방법을 통해 주입을 시도하자
+@ContextConfiguration(classes = DaoFactory.class)
+@SpringBootTest
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UserDaoTest {
+    @Autowired
     private UserDao userDao;
 
     @BeforeAll()
     void setUp() {
-        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(DaoFactory.class);
-        this.userDao = context.getBean("userDao", UserDao.class);
+        // 첫번째 방법으로는 컨텍스트를 강제로 호출해서 빈을 사용해도 된다.
+        // 이 방법이 아니면, 경우 @ContextConfiguration에 등록하자
+//        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(DaoFactory.class);
+//        this.userDao = context.getBean("userDao", UserDao.class);
     }
 
     @BeforeEach
     void init() throws SQLException {
+        System.out.println(userDao);
         userDao.deleteAll();
     }
 
