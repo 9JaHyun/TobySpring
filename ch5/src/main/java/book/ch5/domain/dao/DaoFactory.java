@@ -1,6 +1,7 @@
 package book.ch5.domain.dao;
 
 import book.ch5.UserService;
+import book.ch5.UserServiceV2;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.SimpleDriverDataSource;
@@ -29,5 +30,10 @@ public class DaoFactory {
     @Bean
     public UserService userService() {
         return new UserService(jdbcTemplate());
+    }
+
+    @Bean
+    public UserServiceV2 userServiceV2() {
+        return new UserServiceV2(jdbcTemplate(), dataSource());
     }
 }

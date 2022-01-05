@@ -39,6 +39,4 @@ public class UserService {
             default: throw new IllegalArgumentException("Unknown Level" + currentLevel);
         }
     }
-
-
 }
