@@ -3,31 +3,31 @@ package book.ch5;
 import book.ch5.domain.Level;
 import book.ch5.domain.User;
 import book.ch5.domain.dao.UserDao;
-import org.springframework.jdbc.datasource.DataSourceUtils;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
-import javax.sql.DataSource;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
-// 트랜젝션 적용 시작
-public class UserServiceV2 {
+// 이제 여러 트랜잭션을 지원하는 만큼 UserService도 이에 구애되지 않게 만들어한다.
+public class UserServiceV3 {
     private static final int MIN_LOGIN_COUNT_FOR_SILVER = 50;
     private static final int MIN_RECOMMEND_FOR_SILVER = 30;
-    private UserDao userDao;
-    private DataSource dataSource;
+    private final UserDao userDao;
+    private final PlatformTransactionManager transactionManager;
 
-    public UserServiceV2(UserDao userDao, DataSource dataSource) {
+    public UserServiceV3(UserDao userDao, PlatformTransactionManager transactionManager) {
         this.userDao = userDao;
-        this.dataSource = dataSource;
+        this.transactionManager = transactionManager;
     }
 
     public void upgradeLevels() throws SQLException {
-        TransactionSynchronizationManager.initSynchronization();
-        Connection c = DataSourceUtils.getConnection(dataSource);
-        c.setAutoCommit(false);
-
+        // 이런 경우에는 PlatformTransactionManager가 있다.
+        // 트랜잭션 경계설정을 위한 추상 인터페이스
+        // 얘도 생각해보면 빈으로 만들 수 있지 않을까?
+//        PlatformTransactionManager transactionManager = new DataSourceTransactionManager(dataSource);
+        TransactionStatus status = transactionManager.getTransaction(new DefaultTransactionDefinition());
         try {
             List<User> users = userDao.getAll();
             for (User user : users) {
@@ -35,14 +35,10 @@ public class UserServiceV2 {
                     upgradeLevel(user);
                 }
             }
-            c.commit();
+            transactionManager.commit(status);
         } catch (Exception e) {
-            c.rollback();
+            transactionManager.rollback(status);
             throw e;
-        } finally {
-            DataSourceUtils.releaseConnection(c, dataSource);
-            TransactionSynchronizationManager.unbindResource(this.dataSource);
-            TransactionSynchronizationManager.clearSynchronization();   // 저장소 비우기
         }
     }
 

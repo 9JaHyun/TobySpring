@@ -4,7 +4,6 @@ import book.ch5.domain.Level;
 import book.ch5.domain.User;
 import book.ch5.domain.dao.DaoFactory;
 import book.ch5.domain.dao.UserDao;
-import book.ch5.domain.dao.UserDaoJdbcTemplate;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,10 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
 @ContextConfiguration(classes = DaoFactory.class)
@@ -24,7 +24,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class UserServiceTest {
 
     @Autowired
-    private UserService userService;
+    private UserServiceV3 userService;
+
     @Autowired
     private UserDao userDao;
 
@@ -47,7 +48,7 @@ class UserServiceTest {
     }
 
     @Test
-    void upgradeLevels() {
+    void upgradeLevels() throws SQLException {
         for (User user : userList) {
             userDao.add(user);
         }
